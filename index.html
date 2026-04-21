@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrossModal-ListingSearch · Corsearch Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --bg-inv: #000000;
+    --fg-inv: #ffffff;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.55;
+    font-size: 14px;
+    letter-spacing: -0.003em;
+  }
+
+  /* ============================================================
+     ANIMATIONS — subtle, not flashy
+     ============================================================ */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeInScale { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideRight { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fillBar { from { width: 0; } }
+
+  /* ============================================================
+     HEADER  —  black bg, white text
+     ============================================================ */
+  header {
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--fg-inv);
+    animation: fadeIn 0.4s ease;
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  header p {
+    font-size: 13px;
+    opacity: 0.65;
+    margin-top: 6px;
+    font-weight: 400;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--fg-inv);
+    color: var(--bg-inv);
+    padding: 3px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-left: 10px;
+    vertical-align: middle;
+    font-family: var(--mono);
+  }
+  .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--fg-inv);
+    border-radius: 50%;
+    margin-right: 7px;
+    animation: pulse 1.6s ease-in-out infinite;
+    vertical-align: middle;
+  }
+
+  /* ============================================================
+     MAIN
+     ============================================================ */
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 28px 60px;
+    animation: fadeIn 0.5s ease 0.05s both;
+  }
+
+  /* ============================================================
+     PROBLEM STATEMENT
+     ============================================================ */
+  .problem {
+    border: 1px solid var(--fg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    background: var(--bg);
+  }
+  .problem h2 {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+  }
+  .problem p {
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .problem p:last-of-type { margin-bottom: 0; }
+  .problem strong { font-weight: 700; }
+  .problem code {
+    font-family: var(--mono);
+    background: var(--fg);
+    color: var(--bg);
+    padding: 1px 6px;
+    font-size: 12px;
+  }
+
+  .how-to {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .how-to strong {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-family: var(--mono);
+    margin-right: 6px;
+  }
+
+  /* ============================================================
+     STEP HEADERS
+     ============================================================ */
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 28px 0 6px;
+    animation: slideRight 0.4s ease;
+  }
+  .step-num {
+    background: var(--fg);
+    color: var(--bg);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: var(--mono);
+  }
+  .step-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .step-desc {
+    font-size: 13px;
+    margin-left: 42px;
+    margin-bottom: 14px;
+    opacity: 0.65;
+  }
+  .step-desc code {
+    font-family: var(--mono);
+    background: var(--fg);
+    color: var(--bg);
+    padding: 1px 6px;
+    font-size: 12px;
+    opacity: 1;
+  }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  button {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--fg);
+    padding: 9px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+  }
+  button:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
+  button.secondary { background: var(--bg); color: var(--fg); }
+  button.primary { background: var(--fg); color: var(--bg); font-weight: 600; }
+  button.primary:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
+  button.primary-big {
+    padding: 16px 28px;
+    font-size: 13px;
+    width: 100%;
+    margin-top: 16px;
+    background: var(--fg);
+    color: var(--bg);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: var(--mono);
+  }
+  button.primary-big:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
+
+  /* ============================================================
+     INPUTS
+     ============================================================ */
+  input[type="text"], input[type="search"] {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--fg);
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    letter-spacing: -0.003em;
+  }
+  input[type="text"]:focus, input[type="search"]:focus {
+    outline: none;
+    box-shadow: inset 0 -2px 0 0 var(--fg);
+  }
+  input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--fg);
+    accent-color: var(--fg);
+    cursor: pointer;
+  }
+  input[type="file"] { display: none; }
+
+  /* ============================================================
+     GALLERY (Demo 1)
+     ============================================================ */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    border: 1px solid var(--fg);
+    padding: 12px;
+    background: var(--bg);
+  }
+  .gallery-item {
+    border: 1px solid var(--fg);
+    padding: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-align: center;
+    background: var(--bg);
+    animation: fadeIn 0.3s ease both;
+  }
+  .gallery-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 var(--fg);
+  }
+  .gallery-item.selected {
+    background: var(--fg);
+    color: var(--bg);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 var(--fg);
+  }
+  .gallery-item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: var(--bg);
+    display: block;
+  }
+  .gallery-item .title {
+    font-size: 11px;
+    margin-top: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .gallery-loading, .gallery-error {
+    grid-column: 1 / -1;
+    padding: 40px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  /* ============================================================
+     COMPARE PANEL (Demo 1)
+     ============================================================ */
+  .compare-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    border: 1px solid var(--fg);
+    padding: 16px;
+    background: var(--bg);
+  }
+  @media (max-width: 700px) { .compare-panel { grid-template-columns: 1fr; } }
+
+  .slot {
+    border: 1px solid var(--fg);
+    padding: 12px;
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+  }
+  .slot-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .slot-img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 1px dashed var(--fg);
+  }
+  .slot-img-wrap:has(img), .slot-img-wrap:has(canvas) { border-style: solid; }
+  .slot img, .slot canvas { max-width: 100%; max-height: 100%; }
+  .slot-empty { font-size: 13px; padding: 20px; opacity: 0.5; font-style: italic; }
+
+  /* ============================================================
+     TRANSFORM BAR (Demo 1)
+     ============================================================ */
+  .transform-bar {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    border: 1px solid var(--fg);
+  }
+  .transform-bar .label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .transform-bar button {
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    border: 1px solid var(--fg-inv);
+  }
+  .transform-bar button:hover:not(:disabled) { background: var(--fg-inv); color: var(--bg-inv); }
+  .transform-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ============================================================
+     ML CONTROLS (Demo 1)
+     ============================================================ */
+  .ml-controls {
+    border: 1px solid var(--fg);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    flex-wrap: wrap;
+    background: var(--bg);
+  }
+  .ml-controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .ml-status {
+    font-size: 11px;
+    margin-left: auto;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+    opacity: 0.7;
+  }
+  .ml-status.loading::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--fg);
+    margin-right: 6px;
+    animation: pulse 1s infinite;
+    vertical-align: middle;
+  }
+  .ml-status.ready::before {
+    content: '✓';
+    margin-right: 6px;
+    font-weight: 700;
+  }
+  .ml-status.error::before {
+    content: '✕';
+    margin-right: 6px;
+    font-weight: 700;
+  }
+
+  /* ============================================================
+     RESULTS + VERDICT
+     ============================================================ */
+  .results {
+    border: 1px solid var(--fg);
+    padding: 22px;
+    margin-top: 22px;
+    background: var(--bg);
+    animation: fadeIn 0.4s ease;
+  }
+  .results.hidden { display: none; }
+
+  .verdict {
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    font-weight: 600;
+    border: 1px solid var(--fg);
+    animation: fadeInScale 0.3s ease;
+    line-height: 1.4;
+  }
+  .verdict.match, .verdict.counterfeit {
+    background: var(--fg);
+    color: var(--bg);
+    font-size: 17px;
+    font-weight: 700;
+    border: 2px solid var(--fg);
+    letter-spacing: -0.005em;
+  }
+  .verdict.partial, .verdict.suspicious {
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid var(--fg);
+  }
+  .verdict.no-match, .verdict.clean {
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid var(--fg);
+  }
+  .verdict-detail {
+    font-size: 12px;
+    font-weight: 400;
+    margin-top: 8px;
+    opacity: 0.8;
+    letter-spacing: 0;
+  }
+
+  /* ============================================================
+     METRICS
+     ============================================================ */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .metric {
+    padding: 14px 16px;
+    border: 1px solid var(--fg);
+    background: var(--bg);
+    animation: fadeIn 0.4s ease both;
+  }
+  .metric:nth-child(1) { animation-delay: 0s; }
+  .metric:nth-child(2) { animation-delay: 0.05s; }
+  .metric:nth-child(3) { animation-delay: 0.10s; }
+  .metric:nth-child(4) { animation-delay: 0.15s; }
+  .metric:nth-child(5) { animation-delay: 0.20s; }
+
+  .metric-name {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-family: var(--mono);
+  }
+  .metric-badge {
+    display: inline-block;
+    background: var(--fg);
+    color: var(--bg);
+    font-size: 9px;
+    padding: 2px 6px;
+    margin-left: 6px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-family: var(--mono);
+  }
+  .metric-value {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 8px 0 4px;
+    font-family: var(--mono);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .metric-desc {
+    font-size: 12px;
+    opacity: 0.7;
+    line-height: 1.45;
+  }
+
+  /* ============================================================
+     BARS
+     ============================================================ */
+  .bar {
+    height: 6px;
+    border: 1px solid var(--fg);
+    margin-top: 10px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--fg);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .bar-fill.high, .bar-fill.mid, .bar-fill.low { background: var(--fg); }
+
+  .hash-display {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    padding: 8px 10px;
+    word-break: break-all;
+    margin-top: 8px;
+    line-height: 1.6;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================================
+     SEARCH BAR (Demo 2)
+     ============================================================ */
+  .search-bar {
+    border: 1px solid var(--fg);
+    padding: 18px;
+    margin-bottom: 14px;
+    background: var(--bg);
+  }
+  .search-bar label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-family: var(--mono);
+  }
+  .search-input-wrap { display: flex; gap: 8px; }
+  .search-input-wrap input { flex: 1; }
+
+  .example-queries {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .example-queries span {
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-right: 4px;
+  }
+
+  /* ============================================================
+     ANALYSIS / CONCEPT PILLS
+     ============================================================ */
+  .analysis {
+    border: 1px solid var(--fg);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    display: none;
+    background: var(--bg);
+    animation: fadeIn 0.3s ease;
+  }
+  .analysis.show { display: block; }
+  .analysis h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .concepts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .concept-pill {
+    background: var(--fg);
+    color: var(--bg);
+    border: 1px solid var(--fg);
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--mono);
+    letter-spacing: 0.02em;
+  }
+  .concept-pill .weight { font-size: 10px; opacity: 0.7; margin-left: 4px; }
+
+  /* ============================================================
+     CATALOG STATUS
+     ============================================================ */
+  .catalog-status {
+    font-size: 12px;
+    margin-bottom: 14px;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid var(--fg);
+    background: var(--bg);
+    font-family: var(--mono);
+    letter-spacing: 0.02em;
+  }
+  .catalog-status.ready { background: var(--bg-inv); color: var(--fg-inv); }
+  .catalog-status.error { background: var(--bg); color: var(--fg); border-style: dashed; border-width: 2px; }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+  .results-header h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .results-count {
+    font-size: 12px;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+  }
+  .results-count strong { font-weight: 700; }
+
+  /* ============================================================
+     LISTINGS GRID (Demo 2)
+     ============================================================ */
+  .listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .listing {
+    border: 1px solid var(--fg);
+    padding: 14px;
+    position: relative;
+    background: var(--bg);
+    transition: all 0.2s ease;
+    animation: fadeIn 0.3s ease both;
+  }
+  .listing:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 0 var(--fg); }
+  .listing.high-match { border-width: 3px; }
+  .listing.med-match { border-width: 2px; }
+  .listing.low-match { border-width: 1px; opacity: 0.85; }
+
+  .listing-img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg);
+    border: 1px solid var(--fg);
+    overflow: hidden;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .listing-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .listing-img-placeholder { font-size: 32px; opacity: 0.3; }
+
+  .listing-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+  }
+  .listing-meta {
+    font-size: 11px;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    opacity: 0.65;
+    letter-spacing: 0.02em;
+  }
+  .listing-desc {
+    font-size: 11px;
+    margin-bottom: 10px;
+    line-height: 1.45;
+    max-height: 2.9em;
+    overflow: hidden;
+    opacity: 0.8;
+  }
+
+  .score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .score-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    min-width: 60px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .score-bar { flex: 1; height: 4px; border: 1px solid var(--fg); background: var(--bg); overflow: hidden; }
+  .score-fill { height: 100%; background: var(--fg); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  .score-value {
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--mono);
+    min-width: 34px;
+    text-align: right;
+    letter-spacing: 0.02em;
+  }
+
+  .brand-flag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 9px;
+    padding: 3px 7px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-family: var(--mono);
+    text-transform: uppercase;
+  }
+  .brand-flag.hidden-brand { background: var(--fg); color: var(--bg); }
+  .brand-flag.explicit-brand { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); }
+
+  /* ============================================================
+     SAMPLES + PANELS (Demo 3)
+     ============================================================ */
+  .samples-bar {
+    border: 1px solid var(--fg);
+    padding: 16px;
+    margin-bottom: 18px;
+    background: var(--bg);
+  }
+  .samples-bar h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+  }
+  .samples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .sample-card {
+    border: 1px solid var(--fg);
+    padding: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-align: center;
+    background: var(--bg);
+    animation: fadeIn 0.3s ease both;
+  }
+  .sample-card:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 0 var(--fg); }
+  .sample-card.selected {
+    background: var(--fg);
+    color: var(--bg);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 var(--fg);
+  }
+  .sample-card canvas, .sample-card img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--fg);
+  }
+  .sample-card.selected canvas, .sample-card.selected img { border-color: var(--bg); }
+  .sample-card .title { font-size: 11px; margin-top: 6px; font-weight: 600; letter-spacing: -0.005em; }
+  .sample-card .subtitle {
+    font-size: 9px;
+    font-family: var(--mono);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+  .sample-card.selected .subtitle { opacity: 0.8; }
+  .samples-loading {
+    grid-column: 1/-1;
+    padding: 40px;
+    text-align: center;
+    font-size: 13px;
+  }
+  .upload-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.8;
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 850px) { .workspace { grid-template-columns: 1fr; } }
+
+  .panel {
+    border: 1px solid var(--fg);
+    padding: 16px;
+    background: var(--bg);
+  }
+  .panel h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+  }
+
+  .image-area {
+    border: 1px dashed var(--fg);
+    padding: 12px;
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    background: var(--bg);
+  }
+  .image-area:has(img), .image-area:has(canvas) { border-style: solid; }
+  .image-area img, .image-area canvas { max-width: 100%; max-height: 360px; }
+  .image-area.empty { font-size: 13px; font-style: italic; opacity: 0.5; }
+
+  .status {
+    font-size: 11px;
+    padding: 10px 12px;
+    border: 1px solid var(--fg);
+    font-family: var(--mono);
+    min-height: 20px;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+  }
+  .status.running {
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+  }
+  .status.running::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+    margin-left: 4px;
+  }
+  .status.done { background: var(--bg); color: var(--fg); font-weight: 600; }
+  .status.done::before { content: '✓  '; }
+  .status.error { background: var(--bg); color: var(--fg); border-width: 2px; }
+  .status.error::before { content: '✕  '; }
+
+  .raw-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    padding: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+  }
+  .raw-text.empty { font-style: italic; opacity: 0.4; }
+
+  /* ============================================================
+     ENTITIES (Demo 3)
+     ============================================================ */
+  .entity-group { margin-bottom: 12px; }
+  .entity-group-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+  }
+  .entity-count {
+    background: var(--fg);
+    color: var(--bg);
+    font-size: 9px;
+    padding: 1px 6px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .entity-count.zero { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); }
+  .entity-list { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .entity-pill {
+    display: inline-block;
+    padding: 3px 9px;
+    border: 1px solid var(--fg);
+    font-size: 11px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    letter-spacing: 0.01em;
+  }
+  .entity-pill.brand { background: var(--fg); color: var(--bg); font-weight: 700; }
+  .entity-pill.phone { }
+  .entity-pill.url { text-decoration: underline; }
+  .entity-pill.social { font-style: italic; }
+  .entity-pill.serial { font-weight: 500; }
+  .entity-pill.price { font-weight: 700; }
+  .entity-pill.discount { background: var(--fg); color: var(--bg); font-weight: 700; }
+  .entity-pill.empty {
+    border-style: dashed;
+    font-style: italic;
+    opacity: 0.4;
+    font-family: var(--font);
+  }
+
+  /* ============================================================
+     NETWORK PANEL (Demo 3)
+     ============================================================ */
+  .network {
+    margin-top: 22px;
+    border: 1px solid var(--fg);
+    padding: 18px;
+    background: var(--bg);
+    animation: fadeIn 0.3s ease;
+  }
+  .network h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .network p { font-size: 13px; margin-bottom: 14px; line-height: 1.55; }
+  .network-alert {
+    padding: 12px 16px;
+    background: var(--bg-inv);
+    color: var(--fg-inv);
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
+    font-family: var(--mono);
+  }
+  .network-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .network-item {
+    border: 1px solid var(--fg);
+    padding: 12px;
+    font-size: 12px;
+    background: var(--bg);
+  }
+  .network-item.linked { border-width: 2px; }
+  .network-item-title { font-weight: 700; font-size: 12px; margin-bottom: 5px; }
+  .network-item-detail {
+    font-size: 10px;
+    font-family: var(--mono);
+    opacity: 0.65;
+    letter-spacing: 0.02em;
+  }
+  .network-item-shared {
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+    padding-top: 6px;
+    border-top: 1px solid var(--fg);
+  }
+
+  /* ============================================================
+     TECH FOOTER
+     ============================================================ */
+  .tech {
+    margin-top: 24px;
+    padding: 20px 24px;
+    border: 1px solid var(--fg);
+    font-size: 13px;
+    background: var(--bg);
+  }
+  .tech h4 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+  }
+  .tech p { margin-bottom: 8px; line-height: 1.6; }
+  .tech code {
+    background: var(--fg);
+    color: var(--bg);
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .tech strong { font-weight: 700; }
+
+  /* ============================================================
+     SPINNER
+     ============================================================ */
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* ============================================================
+     SCROLLBAR
+     ============================================================ */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); border-left: 1px solid var(--fg); }
+  ::-webkit-scrollbar-thumb { background: var(--fg); }
+
+  /* ============================================================
+     SELECTION
+     ============================================================ */
+  ::selection { background: var(--fg); color: var(--bg); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CrossModal-ListingSearch <span class="tag">Corsearch · Deep Semantic Detection</span></h1>
+  <p>Finds infringing listings semantically — even when counterfeiters remove brand names from titles</p>
+</header>
+
+<main>
+
+  <div class="problem">
+    <h2>Problem this solves</h2>
+    <p>Sophisticated counterfeiters strip brand names from listing titles ("premium athletic runner" instead of "Nike Air Max") to evade keyword scraping. Corsearch Zeal 2.0 explicitly targets "disguised infringements even lacking explicit brand identifiers" via deep semantic detection.</p>
+    <p>This demo implements a <strong>CLIP-style bi-encoder retrieval</strong> over a live catalog of real products fetched from the DummyJSON open-source API, plus auto-generated "hidden brand" counterfeit twins for each. The query is projected into a shared concept space where it matches listings by visual/semantic DNA — not brand keywords.</p>
+    <div class="how-to">
+      <strong>How to use:</strong> Type a product description (no brand name needed) or click an example. Listings are ranked by semantic similarity. Any listing with high semantic match but no visible brand is auto-flagged <strong>⚠ HIDDEN BRAND</strong> — the key catch this system enables.
+    </div>
+  </div>
+
+  <div class="catalog-status loading" id="catalogStatus">
+    <span class="spinner"></span> Loading catalog from DummyJSON…
+  </div>
+
+  <div class="search-bar">
+    <label>Describe the authentic product you want to protect</label>
+    <div class="search-input-wrap">
+      <input type="text" id="query" placeholder='e.g. "red athletic running shoe with curved side logo"' value='red athletic running shoe with curved side logo'>
+      <button onclick="runSearch()">Search</button>
+    </div>
+    <div class="example-queries">
+      <span>Try:</span>
+      <button class="secondary" onclick="setQuery('red athletic running shoe with curved side logo')">Nike-like shoe</button>
+      <button class="secondary" onclick="setQuery('luxury leather handbag with gold chain strap')">Chanel-like bag</button>
+      <button class="secondary" onclick="setQuery('stainless steel automatic dive watch rotating bezel')">Rolex-like watch</button>
+      <button class="secondary" onclick="setQuery('black leather loafer dress shoe')">Loafer</button>
+    </div>
+  </div>
+
+  <div class="analysis" id="analysis"></div>
+
+  <div class="results-header">
+    <h3>Catalog matches</h3>
+    <span class="results-count" id="resultsCount">—</span>
+  </div>
+
+  <div class="listings-grid" id="results"></div>
+
+  <div class="tech">
+    <h4>How it works</h4>
+    <p><strong>Real catalog:</strong> products fetched live from DummyJSON (<code>dummyjson.com/products</code>) — men's shoes, watches, women's bags, shoes. For each authentic listing, the demo auto-generates a "hidden brand" counterfeit twin (same image, brand stripped from title + replaced with suspicious descriptors like "premium", "AAA", "factory direct").</p>
+    <p><strong>Concept embedding space:</strong> queries and listings project into a shared 28-dimensional space of visual/semantic concepts (product type, color, material, style cues, logo features, price tier). In production this is a fine-tuned CLIP or SigLIP bi-encoder trained on marketplace image-text pairs.</p>
+    <p><strong>Cosine similarity retrieval + hidden-brand flag:</strong> ranked by <code>cos(q, l)</code>. A top result with high semantic similarity but no brand keyword in title is auto-flagged for enforcement review — the highest-value catch for this system.</p>
+  </div>
+
+</main>
+
+<script>
+  // ===== Concept taxonomy =====
+  const CONCEPTS = [
+    'athletic','running','leather','quilted','handbag','watch',
+    'dive_watch','steel','luxury','premium','red','white','black',
+    'blue','brown','gold_accent','chain_strap','rotating_bezel',
+    'earbuds','wireless','charging_case','shoe','loafer','cheap_price',
+    'high_price','dressy','casual','heeled'
+  ];
+
+  const KW = {
+    'athletic':['athletic'],'athletics':['athletic'],'sport':['athletic'],'sports':['athletic'],'sporty':['athletic'],'gym':['athletic'],
+    'running':['running','athletic'],'runner':['running','athletic'],'run':['running'],
+    'trainer':['athletic','shoe'],'trainers':['athletic','shoe'],
+    'shoe':['shoe'],'shoes':['shoe'],
+    'sneaker':['shoe','athletic'],'sneakers':['shoe','athletic'],
+    'loafer':['loafer','shoe','dressy'],'loafers':['loafer','shoe','dressy'],
+    'heel':['heeled','shoe'],'heels':['heeled','shoe'],'heeled':['heeled'],
+    'dress':['dressy'],'dressy':['dressy'],'casual':['casual'],'formal':['dressy'],
+    'red':['red'],'black':['black'],'white':['white'],'blue':['blue'],'brown':['brown'],
+    'gold':['gold_accent'],'golden':['gold_accent'],
+    'curved':['athletic'],'swoosh':['athletic','running'],'logo':['athletic'],'side':['athletic'],
+    'luxury':['luxury','premium'],'premium':['premium'],'high-end':['luxury','premium'],'designer':['luxury','premium'],
+    'leather':['leather'],
+    'quilted':['quilted'],'diamond':['quilted'],
+    'handbag':['handbag'],'bag':['handbag'],'tote':['handbag'],'clutch':['handbag'],'purse':['handbag'],'satchel':['handbag'],
+    'chain':['chain_strap'],'strap':['chain_strap'],
+    'watch':['watch'],'timepiece':['watch'],
+    'dive':['dive_watch'],'diver':['dive_watch'],'submariner':['dive_watch','luxury'],'divers':['dive_watch'],
+    'automatic':['watch','luxury'],
+    'steel':['steel'],'stainless':['steel'],
+    'bezel':['rotating_bezel'],'rotating':['rotating_bezel'],
+    'earbud':['earbuds'],'earbuds':['earbuds'],'airpods':['earbuds','wireless','white','charging_case'],'pods':['earbuds','wireless'],
+    'wireless':['wireless'],'bluetooth':['wireless'],
+    'case':['charging_case'],'charging':['charging_case'],
+    'cheap':['cheap_price'],'expensive':['high_price'],'authentic':['premium']
+  };
+
+  // ===== State =====
+  const state = {
+    catalog: [],
+    ready: false
+  };
+
+  // ===== Concept derivation from real product =====
+  function deriveConcepts(product, isHiddenTwin) {
+    const text = ((product.title || '') + ' ' + (product.description || '') + ' ' + (product.category || '')).toLowerCase();
+    const conceptScores = {};
+    const tokens = text.replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(t => t.length > 0);
+    for (const tok of tokens) {
+      const mapped = KW[tok];
+      if (mapped) {
+        for (const c of mapped) conceptScores[c] = (conceptScores[c] || 0) + 1;
+      }
+    }
+
+    // Derive from category
+    const cat = product.category || '';
+    if (cat.includes('shoes')) conceptScores['shoe'] = (conceptScores['shoe'] || 0) + 2;
+    if (cat.includes('mens-shoes')) conceptScores['casual'] = (conceptScores['casual'] || 0) + 0.5;
+    if (cat.includes('watches')) conceptScores['watch'] = (conceptScores['watch'] || 0) + 2;
+    if (cat.includes('bags')) conceptScores['handbag'] = (conceptScores['handbag'] || 0) + 2;
+    if (cat.includes('jewellery')) conceptScores['luxury'] = (conceptScores['luxury'] || 0) + 1;
+
+    // Price tier from price field
+    if (typeof product.price === 'number') {
+      if (product.price >= 200) conceptScores['high_price'] = (conceptScores['high_price'] || 0) + 1;
+      if (product.price < 50) conceptScores['cheap_price'] = (conceptScores['cheap_price'] || 0) + 1;
+    }
+
+    return conceptScores;
+  }
+
+  // ===== Build hidden-brand twin =====
+  const SUSPICIOUS_DESCRIPTORS = [
+    'Premium athletic trainer - unbranded AAA',
+    'Designer inspired luxury replica top mirror',
+    'Factory direct quality 1:1 mirror batch',
+    'Top grade similar style premium replica',
+    'High quality mirror replica AAA grade',
+    'Premium quality designer-style replica'
+  ];
+
+  function generateHiddenTwin(product) {
+    // Strip known brand names from title
+    const brands = ['nike','adidas','puma','reebok','rolex','apple','samsung','sony','gucci','chanel','prada','hermes','louis','vuitton','calvin','klein'];
+    let title = product.title.toLowerCase();
+    for (const b of brands) {
+      const re = new RegExp('\\b' + b + '\\w*\\b', 'gi');
+      title = title.replace(re, '').trim();
+    }
+    title = title.replace(/\s+/g, ' ').trim();
+    if (title.length < 5) {
+      title = SUSPICIOUS_DESCRIPTORS[Math.floor(Math.random() * SUSPICIOUS_DESCRIPTORS.length)];
+    } else {
+      const descriptor = SUSPICIOUS_DESCRIPTORS[Math.floor(Math.random() * SUSPICIOUS_DESCRIPTORS.length)];
+      title = descriptor.split(' ').slice(0, 2).join(' ') + ' ' + title;
+    }
+    // Lower price
+    const newPrice = Math.max(10, Math.floor((product.price || 100) * (0.2 + Math.random() * 0.3)));
+    // CRITICAL: preserve original description's concept keywords so the twin has the same
+    // visual/semantic DNA as the original — this is the whole point (same product, rebranded)
+    const preservedDesc = (product.description || '') + ' - top quality factory direct batch - not affiliated with original brand';
+    return {
+      id: 'hidden-' + product.id,
+      title: title.replace(/\b\w/g, c => c.toUpperCase()),
+      description: preservedDesc,
+      price: newPrice,
+      category: product.category,
+      thumbnail: product.thumbnail,
+      brand: null,
+      brand_visible: false,
+      _originalId: product.id
+    };
+  }
+
+  // ===== Load catalog =====
+  const CATEGORIES = ['mens-shoes','mens-watches','womens-bags','womens-shoes'];
+
+  async function loadCatalog() {
+    const statusEl = document.getElementById('catalogStatus');
+    try {
+      const requests = CATEGORIES.map(cat =>
+        fetch('https://dummyjson.com/products/category/' + cat + '?limit=4')
+          .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+          })
+          .then(d => d.products || [])
+      );
+      const results = await Promise.all(requests);
+      const products = results.flat();
+      if (products.length === 0) throw new Error('No products returned');
+
+      // Build catalog: authentic + hidden twin for each
+      const catalog = [];
+      for (const p of products) {
+        catalog.push({
+          id: p.id,
+          title: p.title,
+          description: p.description || '',
+          price: p.price,
+          category: p.category,
+          thumbnail: p.thumbnail,
+          brand: p.brand,
+          brand_visible: !!p.brand
+        });
+        // Hidden twin (only for ~60% to keep catalog balanced)
+        if (Math.random() < 0.65) {
+          catalog.push(generateHiddenTwin(p));
+        }
+      }
+
+      // Precompute concepts
+      for (const l of catalog) {
+        l.conceptScores = deriveConcepts(l);
+        l.conceptVec = CONCEPTS.map(c => l.conceptScores[c] || 0);
+      }
+
+      state.catalog = catalog;
+      state.ready = true;
+
+      statusEl.className = 'catalog-status ready';
+      statusEl.innerHTML = '✓ Catalog loaded · ' + catalog.length + ' listings (' +
+        catalog.filter(l => l.brand_visible).length + ' branded, ' +
+        catalog.filter(l => !l.brand_visible).length + ' unbranded twins)';
+
+      runSearch();
+    } catch (err) {
+      console.error(err);
+      statusEl.className = 'catalog-status error';
+      statusEl.innerHTML = '⚠ DummyJSON unavailable: ' + err.message + '. Loading fallback catalog…';
+      loadFallbackCatalog();
+    }
+  }
+
+  function loadFallbackCatalog() {
+    const FALLBACK = [
+      { id:'f1', title:'Nike Air Max 97 Red', description:'Original athletic runner', price:189, category:'mens-shoes', thumbnail:null, brand:'Nike', brand_visible:true, emoji:'👟' },
+      { id:'f2', title:'Premium athletic runner red unbranded', description:'High quality running shoe', price:42, category:'mens-shoes', thumbnail:null, brand:null, brand_visible:false, emoji:'👟' },
+      { id:'f3', title:'Sport runners red edition AAA', description:'Factory mirror quality', price:55, category:'mens-shoes', thumbnail:null, brand:null, brand_visible:false, emoji:'👟' },
+      { id:'f4', title:'Chanel Classic Flap Quilted Black', description:'Authentic luxury bag', price:4200, category:'womens-bags', thumbnail:null, brand:'Chanel', brand_visible:true, emoji:'👜' },
+      { id:'f5', title:'Luxury quilted shoulder bag leather gold chain', description:'Elegant evening bag diamond stitch', price:89, category:'womens-bags', thumbnail:null, brand:null, brand_visible:false, emoji:'👜' },
+      { id:'f6', title:'Designer inspired quilted bag with chain strap', description:'Premium quality, not affiliated', price:75, category:'womens-bags', thumbnail:null, brand:null, brand_visible:false, emoji:'👜' },
+      { id:'f7', title:'Rolex Submariner Black 41mm', description:'Authentic dive watch', price:11500, category:'mens-watches', thumbnail:null, brand:'Rolex', brand_visible:true, emoji:'⌚' },
+      { id:'f8', title:'Stainless steel diver automatic rotating bezel', description:'Professional sport watch 300m water resist', price:180, category:'mens-watches', thumbnail:null, brand:null, brand_visible:false, emoji:'⌚' },
+      { id:'f9', title:'Luxury replica diver watch AAA grade steel', description:'Top quality copy Swiss-like movement', price:250, category:'mens-watches', thumbnail:null, brand:null, brand_visible:false, emoji:'⌚' },
+      { id:'f10', title:'Black leather loafer handcrafted', description:'Italian dress shoe', price:120, category:'mens-shoes', thumbnail:null, brand:null, brand_visible:false, emoji:'🥿' },
+      { id:'f11', title:'Running trainers red white sporty', description:'Breathable mesh athletic signature curve', price:38, category:'mens-shoes', thumbnail:null, brand:null, brand_visible:false, emoji:'👟' },
+      { id:'f12', title:'Adidas UltraBoost Black', description:'Authentic Adidas performance shoe', price:150, category:'mens-shoes', thumbnail:null, brand:'Adidas', brand_visible:true, emoji:'👟' }
+    ];
+    for (const l of FALLBACK) {
+      l.conceptScores = deriveConcepts(l);
+      l.conceptVec = CONCEPTS.map(c => l.conceptScores[c] || 0);
+    }
+    state.catalog = FALLBACK;
+    state.ready = true;
+    document.getElementById('catalogStatus').innerHTML =
+      '⚠ Using fallback catalog (' + FALLBACK.length + ' listings)';
+    runSearch();
+  }
+
+  // ===== Query parsing =====
+  function parseQuery(text) {
+    const tokens = text.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(t => t.length > 0);
+    const scores = {};
+    for (const tok of tokens) {
+      const mapped = KW[tok];
+      if (mapped) for (const c of mapped) scores[c] = (scores[c] || 0) + 1;
+    }
+    return scores;
+  }
+
+  function cosineSim(v1, v2) {
+    let dot=0, n1=0, n2=0;
+    for (let i=0; i<v1.length; i++) {
+      dot += v1[i]*v2[i]; n1 += v1[i]*v1[i]; n2 += v2[i]*v2[i];
+    }
+    if (n1===0 || n2===0) return 0;
+    return dot / (Math.sqrt(n1) * Math.sqrt(n2));
+  }
+
+  function keywordScore(query, listing) {
+    const qWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const text = ((listing.title || '') + ' ' + (listing.description || '')).toLowerCase();
+    if (qWords.length === 0) return 0;
+    let hits = 0;
+    for (const w of qWords) if (text.includes(w)) hits++;
+    return hits / qWords.length;
+  }
+
+  // ===== Search =====
+  function runSearch() {
+    if (!state.ready) return;
+    const q = document.getElementById('query').value.trim();
+    if (!q) return;
+
+    const qConcepts = parseQuery(q);
+    const qVec = CONCEPTS.map(c => qConcepts[c] || 0);
+
+    // Show parsed concepts
+    const analysisEl = document.getElementById('analysis');
+    const entries = Object.entries(qConcepts).sort((a,b)=>b[1]-a[1]);
+    if (entries.length > 0) {
+      analysisEl.innerHTML = '<h3>Query → concept vector (text encoder output)</h3>' +
+        '<div class="concepts">' +
+        entries.map(([c, w]) => '<span class="concept-pill">' + c + '<span class="weight">×' + w + '</span></span>').join('') +
+        '</div>';
+      analysisEl.classList.add('show');
+    } else {
+      analysisEl.classList.remove('show');
+    }
+
+    // Rank
+    const ranked = state.catalog.map(l => ({
+      listing: l,
+      semantic: cosineSim(qVec, l.conceptVec),
+      keyword: keywordScore(q, l)
+    }))
+    .filter(r => r.semantic > 0.1 || r.keyword > 0.3)
+    .sort((a, b) => b.semantic - a.semantic)
+    .slice(0, 12);
+
+    const hidden = ranked.filter(r => !r.listing.brand_visible && r.semantic > 0.45);
+    document.getElementById('resultsCount').innerHTML =
+      ranked.length + ' matches · ' + (hidden.length > 0 ? '<strong>' + hidden.length + ' with hidden brand</strong>' : '0 hidden brand');
+
+    const html = ranked.map(r => {
+      const sim = r.semantic;
+      const matchCls = sim > 0.7 ? 'high-match' : sim > 0.4 ? 'med-match' : 'low-match';
+      const bc = sim > 0.7 ? 'high' : sim > 0.4 ? 'mid' : 'low';
+      const kwBc = r.keyword > 0.5 ? 'high' : r.keyword > 0.2 ? 'mid' : 'low';
+      const flag = !r.listing.brand_visible && sim > 0.45
+        ? '<span class="brand-flag hidden-brand">⚠ HIDDEN BRAND</span>'
+        : r.listing.brand_visible
+          ? '<span class="brand-flag explicit-brand">' + escapeHtml(r.listing.brand || 'brand') + '</span>'
+          : '';
+
+      const imgHtml = r.listing.thumbnail
+        ? '<img src="' + r.listing.thumbnail + '" alt="' + escapeHtml(r.listing.title) + '" loading="lazy">'
+        : '<div class="listing-img-placeholder">' + (r.listing.emoji || '📦') + '</div>';
+
+      return '<div class="listing ' + matchCls + '">' + flag +
+        '<div class="listing-img-wrap">' + imgHtml + '</div>' +
+        '<div class="listing-title">' + escapeHtml(r.listing.title) + '</div>' +
+        '<div class="listing-meta">$' + (r.listing.price || '—') + ' · ' + (r.listing.category || '') + '</div>' +
+        '<div class="listing-desc">' + escapeHtml(r.listing.description || '') + '</div>' +
+        '<div class="score-row"><span class="score-label">Semantic</span>' +
+          '<div class="score-bar"><div class="score-fill ' + bc + '" style="width:' + (sim*100) + '%"></div></div>' +
+          '<span class="score-value">' + (sim*100).toFixed(0) + '%</span></div>' +
+        '<div class="score-row"><span class="score-label">Keyword</span>' +
+          '<div class="score-bar"><div class="score-fill ' + kwBc + '" style="width:' + (r.keyword*100) + '%"></div></div>' +
+          '<span class="score-value">' + (r.keyword*100).toFixed(0) + '%</span></div>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('results').innerHTML = html ||
+      '<div style="padding:20px;color:#718096;grid-column:1/-1;text-align:center;">No matches found. Try a different description.</div>';
+  }
+
+  function setQuery(q) {
+    document.getElementById('query').value = q;
+    runSearch();
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Allow Enter key to search
+  document.getElementById('query').addEventListener('keyup', e => {
+    if (e.key === 'Enter') runSearch();
+  });
+
+  loadCatalog();
+</script>
+
+</body>
+</html>
